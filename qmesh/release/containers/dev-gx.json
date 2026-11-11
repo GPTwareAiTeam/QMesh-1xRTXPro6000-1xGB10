@@ -1,0 +1,28 @@
+{
+  "name": "seam-gx2-dev",
+  "image": "qmesh-nccl2312-official-gx10:20260814-3",
+  "workdir": "/workspace/vllm",
+  "entrypoint": "sleep",
+  "cmd": ["infinity"],
+  "mounts": [
+    ["__PAIR_ROOT__", "/pair"],
+    ["__PAIR_COLD_PACK__", "/cold"]
+  ],
+  "env": {
+    "CUDA_HOME": "/usr/local/cuda",
+    "TORCH_CUDA_ARCH_LIST": "12.1",
+    "PYTHONPATH": "/src/exllamav3",
+    "TORCH_EXTENSIONS_DIR": "/pair/scratch-ext",
+    "LD_LIBRARY_PATH": "/usr/local/cuda/lib64",
+    "LIBRARY_PATH": "/usr/local/cuda/lib64/stubs",
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+    "MAX_JOBS": "8",
+    "NINJAFLAGS": "-j8",
+    "MAKEFLAGS": "-j8",
+    "CMAKE_BUILD_PARALLEL_LEVEL": "8",
+    "NVARCH": "sbsa"
+  },
+  "args": ["--gpus", "device=0", "--network", "host", "--ipc", "host", "--shm-size", "68719476736",
+           "--ulimit", "memlock=-1", "--security-opt", "label=disable",
+           "--device", "/dev/infiniband:/dev/infiniband:rwm", "--restart", "no"]
+}

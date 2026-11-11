@@ -1,0 +1,1523 @@
+{
+ "model_dir": "<official-weights>",
+ "checkpoint": "<r5-hot-pack>",
+ "placement": "<r5-hot-pack>/placement.mix-mix4460-nq.json",
+ "placement_sha": "61868238268076550812a5d2eddf8363824609c954e9e2fe923bafb84552feac",
+ "kv_bits": 4,
+ "ctx": 2048,
+ "prefill_chunk": 2048,
+ "cache_tokens": 5000192,
+ "seam_peer": "10.0.101.2:47311",
+ "build_id": "",
+ "ts": "2026-11-11T09:54:03",
+ "sanity": {
+  "facts": {
+   "tokens": 43,
+   "nll_mean": 0.7971236819312686,
+   "ppl": 2.2191487622657267,
+   "top1_acc": 0.8571428656578064
+  },
+  "repeat": {
+   "tokens": 65,
+   "nll_mean": 0.5663780272006989,
+   "ppl": 1.7618740209518093,
+   "top1_acc": 0.921875
+  },
+  "code": {
+   "tokens": 47,
+   "nll_mean": 0.6191469690074091,
+   "ppl": 1.8573429947569116,
+   "top1_acc": 0.8478261232376099
+  }
+ },
+ "reference": {
+  "conversations_1017_panel.jsonl": {
+   "positions": 237457,
+   "nll_native": 0.4523468613624573,
+   "ppl_native": 1.5719971190853954,
+   "nll_ours": 0.4666527807712555,
+   "ppl_ours": 1.5946476149645774
+  }
+ },
+ "panel": {
+  "files": [
+   "conversations_1017_panel.jsonl"
+  ],
+  "conversations": 199,
+  "panel_max": 2048,
+  "positions": 237457,
+  "elapsed_s": 317.8,
+  "by_file": {
+   "conversations_1017_panel.jsonl": {
+    "file": "<local-path>",
+    "conversations": 199,
+    "panel_max": 2048,
+    "positions": 237457,
+    "elapsed_s": 317.8,
+    "nll_mean": 0.46127007117913793,
+    "ppl": 1.586087149869172,
+    "ppl_stderr": 0.0034913031152353233,
+    "by_domain": {
+     "agentic": {
+      "nll": 0.4878671961551122,
+      "positions": 16163
+     },
+     "chat": {
+      "nll": 0.5241033531840665,
+      "positions": 13381
+     },
+     "code": {
+      "nll": 0.46666807460340837,
+      "positions": 160636
+     },
+     "knowledge": {
+      "nll": 0.44644339318049164,
+      "positions": 11695
+     },
+     "long": {
+      "nll": 0.41456767406102635,
+      "positions": 16221
+     },
+     "math": {
+      "nll": 0.4712500015797514,
+      "positions": 9007
+     },
+     "multilingual": {
+      "nll": 0.28053365372071687,
+      "positions": 7804
+     },
+     "writing": {
+      "nll": 0.5058819127550312,
+      "positions": 2550
+     }
+    },
+    "per_conversation": [
+     {
+      "id": "p0004",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1990,
+      "nll_sum": 1212.3950681686401
+     },
+     {
+      "id": "p0005",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1986,
+      "nll_sum": 1008.8140411376953
+     },
+     {
+      "id": "p0006",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1990,
+      "nll_sum": 366.74718856811523
+     },
+     {
+      "id": "p0013",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1994,
+      "nll_sum": 1424.5053119659424
+     },
+     {
+      "id": "p0014",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2016,
+      "nll_sum": 990.2179431915283
+     },
+     {
+      "id": "p0015",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1987,
+      "nll_sum": 928.4832077026367
+     },
+     {
+      "id": "p0019",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1983,
+      "nll_sum": 1258.1543703079224
+     },
+     {
+      "id": "p0020",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1997,
+      "nll_sum": 1463.2117462158203
+     },
+     {
+      "id": "p0021",
+      "domain": "code",
+      "length": 1712,
+      "scored": 1688,
+      "nll_sum": 442.02135467529297
+     },
+     {
+      "id": "p0022",
+      "domain": "code",
+      "length": 634,
+      "scored": 601,
+      "nll_sum": 247.5064468383789
+     },
+     {
+      "id": "p0024",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1993,
+      "nll_sum": 1260.600965499878
+     },
+     {
+      "id": "p0025",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1992,
+      "nll_sum": 975.0000410079956
+     },
+     {
+      "id": "p0030",
+      "domain": "code",
+      "length": 1583,
+      "scored": 1560,
+      "nll_sum": 526.1788806915283
+     },
+     {
+      "id": "p0031",
+      "domain": "code",
+      "length": 1532,
+      "scored": 1509,
+      "nll_sum": 575.2254981994629
+     },
+     {
+      "id": "p0036",
+      "domain": "code",
+      "length": 777,
+      "scored": 701,
+      "nll_sum": 265.75465202331543
+     },
+     {
+      "id": "p0037",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1989,
+      "nll_sum": 851.5654621124268
+     },
+     {
+      "id": "p0042",
+      "domain": "code",
+      "length": 1317,
+      "scored": 1243,
+      "nll_sum": 537.1866836547852
+     },
+     {
+      "id": "p0044",
+      "domain": "code",
+      "length": 1768,
+      "scored": 1708,
+      "nll_sum": 683.7711238861084
+     },
+     {
+      "id": "p0045",
+      "domain": "code",
+      "length": 765,
+      "scored": 740,
+      "nll_sum": 144.34397315979004
+     },
+     {
+      "id": "p0047",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1989,
+      "nll_sum": 929.0870018005371
+     },
+     {
+      "id": "p0048",
+      "domain": "code",
+      "length": 1002,
+      "scored": 930,
+      "nll_sum": 495.7123165130615
+     },
+     {
+      "id": "p0049",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1985,
+      "nll_sum": 1471.0222434997559
+     },
+     {
+      "id": "p0050",
+      "domain": "code",
+      "length": 1077,
+      "scored": 1048,
+      "nll_sum": 230.54501342773438
+     },
+     {
+      "id": "p0055",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1987,
+      "nll_sum": 1476.2752304077148
+     },
+     {
+      "id": "p0056",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1996,
+      "nll_sum": 1078.0715160369873
+     },
+     {
+      "id": "p0059",
+      "domain": "code",
+      "length": 1842,
+      "scored": 1814,
+      "nll_sum": 256.6336441040039
+     },
+     {
+      "id": "p0061",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2009,
+      "nll_sum": 947.7267055511475
+     },
+     {
+      "id": "p0065",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1986,
+      "nll_sum": 817.5678510665894
+     },
+     {
+      "id": "p0066",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1985,
+      "nll_sum": 1233.7361278533936
+     },
+     {
+      "id": "p0068",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1988,
+      "nll_sum": 911.9102993011475
+     },
+     {
+      "id": "p0071",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2017,
+      "nll_sum": 1102.0106964111328
+     },
+     {
+      "id": "p0074",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1991,
+      "nll_sum": 1037.8573780059814
+     },
+     {
+      "id": "p0082",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1988,
+      "nll_sum": 948.8315830230713
+     },
+     {
+      "id": "p0083",
+      "domain": "code",
+      "length": 723,
+      "scored": 696,
+      "nll_sum": 134.63591766357422
+     },
+     {
+      "id": "p0084",
+      "domain": "code",
+      "length": 1453,
+      "scored": 1428,
+      "nll_sum": 389.75464057922363
+     },
+     {
+      "id": "p0085",
+      "domain": "code",
+      "length": 1654,
+      "scored": 1628,
+      "nll_sum": 400.6008892059326
+     },
+     {
+      "id": "p0086",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1976,
+      "nll_sum": 593.4959144592285
+     },
+     {
+      "id": "p0087",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1998,
+      "nll_sum": 950.8701057434082
+     },
+     {
+      "id": "p0088",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1990,
+      "nll_sum": 854.957275390625
+     },
+     {
+      "id": "p0090",
+      "domain": "code",
+      "length": 1379,
+      "scored": 1308,
+      "nll_sum": 821.4086856842041
+     },
+     {
+      "id": "p0098",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1998,
+      "nll_sum": 698.1379661560059
+     },
+     {
+      "id": "p0099",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1980,
+      "nll_sum": 897.5430965423584
+     },
+     {
+      "id": "p0100",
+      "domain": "code",
+      "length": 1609,
+      "scored": 1583,
+      "nll_sum": 227.42360496520996
+     },
+     {
+      "id": "p0101",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1993,
+      "nll_sum": 904.1997509002686
+     },
+     {
+      "id": "p0102",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1995,
+      "nll_sum": 1535.345079421997
+     },
+     {
+      "id": "p0107",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2017,
+      "nll_sum": 470.2417221069336
+     },
+     {
+      "id": "p0109",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1994,
+      "nll_sum": 930.9908924102783
+     },
+     {
+      "id": "p0110",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1988,
+      "nll_sum": 1425.698613166809
+     },
+     {
+      "id": "p0111",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2020,
+      "nll_sum": 453.339319229126
+     },
+     {
+      "id": "p0113",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1987,
+      "nll_sum": 890.239767074585
+     },
+     {
+      "id": "p0115",
+      "domain": "code",
+      "length": 683,
+      "scored": 631,
+      "nll_sum": 111.0323076248169
+     },
+     {
+      "id": "p0120",
+      "domain": "code",
+      "length": 666,
+      "scored": 635,
+      "nll_sum": 435.83148765563965
+     },
+     {
+      "id": "p0121",
+      "domain": "code",
+      "length": 1988,
+      "scored": 1952,
+      "nll_sum": 634.5455493927002
+     },
+     {
+      "id": "p0122",
+      "domain": "code",
+      "length": 1014,
+      "scored": 985,
+      "nll_sum": 386.1365146636963
+     },
+     {
+      "id": "p0125",
+      "domain": "code",
+      "length": 800,
+      "scored": 773,
+      "nll_sum": 238.71929740905762
+     },
+     {
+      "id": "p0126",
+      "domain": "code",
+      "length": 737,
+      "scored": 705,
+      "nll_sum": 245.95214080810547
+     },
+     {
+      "id": "p0131",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2016,
+      "nll_sum": 320.8594913482666
+     },
+     {
+      "id": "p0132",
+      "domain": "code",
+      "length": 794,
+      "scored": 758,
+      "nll_sum": 440.9523506164551
+     },
+     {
+      "id": "p0133",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2015,
+      "nll_sum": 652.3237895965576
+     },
+     {
+      "id": "p0136",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1991,
+      "nll_sum": 1212.6900424957275
+     },
+     {
+      "id": "p0143",
+      "domain": "code",
+      "length": 727,
+      "scored": 700,
+      "nll_sum": 109.76957893371582
+     },
+     {
+      "id": "p0145",
+      "domain": "code",
+      "length": 1134,
+      "scored": 1083,
+      "nll_sum": 529.2510509490967
+     },
+     {
+      "id": "p0148",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1991,
+      "nll_sum": 972.5157814025879
+     },
+     {
+      "id": "p0155",
+      "domain": "code",
+      "length": 1518,
+      "scored": 1493,
+      "nll_sum": 320.71173667907715
+     },
+     {
+      "id": "p0156",
+      "domain": "code",
+      "length": 1565,
+      "scored": 1500,
+      "nll_sum": 615.3438758850098
+     },
+     {
+      "id": "p0158",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1983,
+      "nll_sum": 627.7015399932861
+     },
+     {
+      "id": "p0160",
+      "domain": "code",
+      "length": 1280,
+      "scored": 1256,
+      "nll_sum": 304.8767681121826
+     },
+     {
+      "id": "p0162",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1980,
+      "nll_sum": 1265.2082424163818
+     },
+     {
+      "id": "p0163",
+      "domain": "code",
+      "length": 2032,
+      "scored": 1997,
+      "nll_sum": 1188.541488647461
+     },
+     {
+      "id": "p0164",
+      "domain": "code",
+      "length": 1360,
+      "scored": 1324,
+      "nll_sum": 696.4669485092163
+     },
+     {
+      "id": "p0166",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1989,
+      "nll_sum": 1320.946144104004
+     },
+     {
+      "id": "p0168",
+      "domain": "code",
+      "length": 1948,
+      "scored": 1908,
+      "nll_sum": 642.0712432861328
+     },
+     {
+      "id": "p0176",
+      "domain": "code",
+      "length": 1049,
+      "scored": 983,
+      "nll_sum": 215.534499168396
+     },
+     {
+      "id": "p0182",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1998,
+      "nll_sum": 1055.2175540924072
+     },
+     {
+      "id": "p0183",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1986,
+      "nll_sum": 1230.5353717803955
+     },
+     {
+      "id": "p0185",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1992,
+      "nll_sum": 673.965009689331
+     },
+     {
+      "id": "p0188",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1992,
+      "nll_sum": 355.75137519836426
+     },
+     {
+      "id": "p0191",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1995,
+      "nll_sum": 1651.334571838379
+     },
+     {
+      "id": "p0194",
+      "domain": "code",
+      "length": 1267,
+      "scored": 1197,
+      "nll_sum": 792.8104066848755
+     },
+     {
+      "id": "p0197",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1994,
+      "nll_sum": 1287.0948028564453
+     },
+     {
+      "id": "p0198",
+      "domain": "code",
+      "length": 1775,
+      "scored": 1751,
+      "nll_sum": 774.2373313903809
+     },
+     {
+      "id": "p0204",
+      "domain": "code",
+      "length": 1581,
+      "scored": 1530,
+      "nll_sum": 481.3628120422363
+     },
+     {
+      "id": "p0207",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1997,
+      "nll_sum": 704.7722969055176
+     },
+     {
+      "id": "p0209",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1979,
+      "nll_sum": 1212.0566730499268
+     },
+     {
+      "id": "p0210",
+      "domain": "code",
+      "length": 1540,
+      "scored": 1487,
+      "nll_sum": 531.8218936920166
+     },
+     {
+      "id": "p0211",
+      "domain": "code",
+      "length": 1877,
+      "scored": 1818,
+      "nll_sum": 781.2922801971436
+     },
+     {
+      "id": "p0213",
+      "domain": "code",
+      "length": 2048,
+      "scored": 1998,
+      "nll_sum": 945.9349269866943
+     },
+     {
+      "id": "p0217",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2020,
+      "nll_sum": 275.6930046081543
+     },
+     {
+      "id": "p0218",
+      "domain": "code",
+      "length": 2048,
+      "scored": 2018,
+      "nll_sum": 555.9305210113525
+     },
+     {
+      "id": "p0220",
+      "domain": "code_debug",
+      "length": 364,
+      "scored": 279,
+      "nll_sum": 93.70963478088379
+     },
+     {
+      "id": "p0224",
+      "domain": "code_debug",
+      "length": 623,
+      "scored": 529,
+      "nll_sum": 298.7835464477539
+     },
+     {
+      "id": "p0229",
+      "domain": "code_debug",
+      "length": 2048,
+      "scored": 1968,
+      "nll_sum": 1628.110788345337
+     },
+     {
+      "id": "p0230",
+      "domain": "code_debug",
+      "length": 1153,
+      "scored": 1051,
+      "nll_sum": 749.5283718109131
+     },
+     {
+      "id": "p0234",
+      "domain": "code_debug",
+      "length": 638,
+      "scored": 557,
+      "nll_sum": 224.37839889526367
+     },
+     {
+      "id": "p0237",
+      "domain": "code_debug",
+      "length": 677,
+      "scored": 605,
+      "nll_sum": 363.367733001709
+     },
+     {
+      "id": "p0238",
+      "domain": "code_debug",
+      "length": 1440,
+      "scored": 1362,
+      "nll_sum": 991.5966682434082
+     },
+     {
+      "id": "p0239",
+      "domain": "code_debug",
+      "length": 2048,
+      "scored": 1973,
+      "nll_sum": 1588.2785015106201
+     },
+     {
+      "id": "p0243",
+      "domain": "code_debug",
+      "length": 2048,
+      "scored": 1953,
+      "nll_sum": 1550.5916805267334
+     },
+     {
+      "id": "p0246",
+      "domain": "agentic",
+      "length": 1142,
+      "scored": 505,
+      "nll_sum": 203.5535774230957
+     },
+     {
+      "id": "p0248",
+      "domain": "agentic",
+      "length": 1393,
+      "scored": 573,
+      "nll_sum": 266.9565896987915
+     },
+     {
+      "id": "p0253",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 1225,
+      "nll_sum": 574.3978996276855
+     },
+     {
+      "id": "p0257",
+      "domain": "agentic",
+      "length": 1176,
+      "scored": 538,
+      "nll_sum": 197.68080139160156
+     },
+     {
+      "id": "p0263",
+      "domain": "agentic",
+      "length": 1090,
+      "scored": 351,
+      "nll_sum": 128.26432037353516
+     },
+     {
+      "id": "p0264",
+      "domain": "agentic",
+      "length": 1191,
+      "scored": 431,
+      "nll_sum": 209.12878322601318
+     },
+     {
+      "id": "p0271",
+      "domain": "agentic",
+      "length": 678,
+      "scored": 299,
+      "nll_sum": 172.68639469146729
+     },
+     {
+      "id": "p0273",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 1298,
+      "nll_sum": 859.3513288497925
+     },
+     {
+      "id": "p0276",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 1364,
+      "nll_sum": 461.04134368896484
+     },
+     {
+      "id": "p0277",
+      "domain": "agentic",
+      "length": 955,
+      "scored": 537,
+      "nll_sum": 269.0741996765137
+     },
+     {
+      "id": "p0279",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 1185,
+      "nll_sum": 564.4733943939209
+     },
+     {
+      "id": "p0280",
+      "domain": "agentic",
+      "length": 1558,
+      "scored": 1082,
+      "nll_sum": 588.6332817077637
+     },
+     {
+      "id": "p0282",
+      "domain": "agentic",
+      "length": 1917,
+      "scored": 1187,
+      "nll_sum": 469.3455352783203
+     },
+     {
+      "id": "p0284",
+      "domain": "agentic",
+      "length": 710,
+      "scored": 206,
+      "nll_sum": 73.86432838439941
+     },
+     {
+      "id": "p0285",
+      "domain": "agentic",
+      "length": 913,
+      "scored": 388,
+      "nll_sum": 212.51290225982666
+     },
+     {
+      "id": "p0286",
+      "domain": "agentic",
+      "length": 538,
+      "scored": 189,
+      "nll_sum": 83.0820140838623
+     },
+     {
+      "id": "p0289",
+      "domain": "agentic",
+      "length": 609,
+      "scored": 242,
+      "nll_sum": 108.31385803222656
+     },
+     {
+      "id": "p0290",
+      "domain": "agentic",
+      "length": 1083,
+      "scored": 492,
+      "nll_sum": 289.4649019241333
+     },
+     {
+      "id": "p0291",
+      "domain": "agentic",
+      "length": 1174,
+      "scored": 562,
+      "nll_sum": 305.5960922241211
+     },
+     {
+      "id": "p0293",
+      "domain": "agentic",
+      "length": 1517,
+      "scored": 803,
+      "nll_sum": 699.4999809265137
+     },
+     {
+      "id": "p0295",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 1161,
+      "nll_sum": 531.713191986084
+     },
+     {
+      "id": "p0297",
+      "domain": "agentic",
+      "length": 2048,
+      "scored": 867,
+      "nll_sum": 323.7228317260742
+     },
+     {
+      "id": "p0299",
+      "domain": "agentic",
+      "length": 777,
+      "scored": 159,
+      "nll_sum": 82.66447257995605
+     },
+     {
+      "id": "p0301",
+      "domain": "agentic",
+      "length": 1015,
+      "scored": 519,
+      "nll_sum": 210.37546730041504
+     },
+     {
+      "id": "p0304",
+      "domain": "math",
+      "length": 373,
+      "scored": 299,
+      "nll_sum": 85.05533218383789
+     },
+     {
+      "id": "p0308",
+      "domain": "math",
+      "length": 233,
+      "scored": 173,
+      "nll_sum": 59.44733428955078
+     },
+     {
+      "id": "p0313",
+      "domain": "math",
+      "length": 992,
+      "scored": 945,
+      "nll_sum": 356.9574089050293
+     },
+     {
+      "id": "p0314",
+      "domain": "math",
+      "length": 1489,
+      "scored": 1426,
+      "nll_sum": 607.225902557373
+     },
+     {
+      "id": "p0321",
+      "domain": "math",
+      "length": 695,
+      "scored": 635,
+      "nll_sum": 101.55134201049805
+     },
+     {
+      "id": "p0323",
+      "domain": "math",
+      "length": 530,
+      "scored": 485,
+      "nll_sum": 239.8936357498169
+     },
+     {
+      "id": "p0325",
+      "domain": "math",
+      "length": 325,
+      "scored": 270,
+      "nll_sum": 128.67309379577637
+     },
+     {
+      "id": "p0326",
+      "domain": "math",
+      "length": 442,
+      "scored": 393,
+      "nll_sum": 143.62006187438965
+     },
+     {
+      "id": "p0328",
+      "domain": "math",
+      "length": 2048,
+      "scored": 1990,
+      "nll_sum": 1190.3025922775269
+     },
+     {
+      "id": "p0330",
+      "domain": "math",
+      "length": 1035,
+      "scored": 991,
+      "nll_sum": 564.92125415802
+     },
+     {
+      "id": "p0331",
+      "domain": "math",
+      "length": 1459,
+      "scored": 1400,
+      "nll_sum": 766.900806427002
+     },
+     {
+      "id": "p0332",
+      "domain": "knowledge",
+      "length": 1412,
+      "scored": 1364,
+      "nll_sum": 598.5530605316162
+     },
+     {
+      "id": "p0336",
+      "domain": "knowledge",
+      "length": 1289,
+      "scored": 1240,
+      "nll_sum": 500.2285976409912
+     },
+     {
+      "id": "p0337",
+      "domain": "knowledge",
+      "length": 2048,
+      "scored": 1989,
+      "nll_sum": 1282.4018669128418
+     },
+     {
+      "id": "p0340",
+      "domain": "knowledge",
+      "length": 861,
+      "scored": 802,
+      "nll_sum": 606.9293441772461
+     },
+     {
+      "id": "p0342",
+      "domain": "knowledge",
+      "length": 1671,
+      "scored": 1627,
+      "nll_sum": 334.8110294342041
+     },
+     {
+      "id": "p0343",
+      "domain": "knowledge",
+      "length": 301,
+      "scored": 260,
+      "nll_sum": 109.3197374343872
+     },
+     {
+      "id": "p0348",
+      "domain": "knowledge",
+      "length": 883,
+      "scored": 851,
+      "nll_sum": 235.09764099121094
+     },
+     {
+      "id": "p0349",
+      "domain": "knowledge",
+      "length": 930,
+      "scored": 913,
+      "nll_sum": 341.433500289917
+     },
+     {
+      "id": "p0354",
+      "domain": "knowledge",
+      "length": 1215,
+      "scored": 1189,
+      "nll_sum": 346.4954423904419
+     },
+     {
+      "id": "p0357",
+      "domain": "knowledge",
+      "length": 1499,
+      "scored": 1460,
+      "nll_sum": 865.8852634429932
+     },
+     {
+      "id": "p0359",
+      "domain": "writing",
+      "length": 671,
+      "scored": 641,
+      "nll_sum": 203.80562686920166
+     },
+     {
+      "id": "p0364",
+      "domain": "writing",
+      "length": 146,
+      "scored": 126,
+      "nll_sum": 68.31452560424805
+     },
+     {
+      "id": "p0365",
+      "domain": "writing",
+      "length": 534,
+      "scored": 488,
+      "nll_sum": 242.8830852508545
+     },
+     {
+      "id": "p0367",
+      "domain": "writing",
+      "length": 304,
+      "scored": 259,
+      "nll_sum": 161.2544116973877
+     },
+     {
+      "id": "p0370",
+      "domain": "writing",
+      "length": 52,
+      "scored": 40,
+      "nll_sum": 28.370853424072266
+     },
+     {
+      "id": "p0371",
+      "domain": "writing",
+      "length": 1053,
+      "scored": 996,
+      "nll_sum": 585.3703746795654
+     },
+     {
+      "id": "p0374",
+      "domain": "chat",
+      "length": 919,
+      "scored": 865,
+      "nll_sum": 601.030029296875
+     },
+     {
+      "id": "p0376",
+      "domain": "chat",
+      "length": 1372,
+      "scored": 1328,
+      "nll_sum": 729.8655319213867
+     },
+     {
+      "id": "p0377",
+      "domain": "chat",
+      "length": 871,
+      "scored": 825,
+      "nll_sum": 410.7060317993164
+     },
+     {
+      "id": "p0387",
+      "domain": "chat",
+      "length": 2048,
+      "scored": 1995,
+      "nll_sum": 1557.3291025161743
+     },
+     {
+      "id": "p0388",
+      "domain": "chat",
+      "length": 497,
+      "scored": 441,
+      "nll_sum": 387.2247896194458
+     },
+     {
+      "id": "p0390",
+      "domain": "chat",
+      "length": 1919,
+      "scored": 1876,
+      "nll_sum": 765.0480327606201
+     },
+     {
+      "id": "p0391",
+      "domain": "chat",
+      "length": 758,
+      "scored": 731,
+      "nll_sum": 310.78968811035156
+     },
+     {
+      "id": "p0393",
+      "domain": "chat",
+      "length": 1001,
+      "scored": 960,
+      "nll_sum": 346.0608720779419
+     },
+     {
+      "id": "p0394",
+      "domain": "chat",
+      "length": 1362,
+      "scored": 1306,
+      "nll_sum": 529.0327558517456
+     },
+     {
+      "id": "p0395",
+      "domain": "chat",
+      "length": 620,
+      "scored": 604,
+      "nll_sum": 274.2251167297363
+     },
+     {
+      "id": "p0397",
+      "domain": "chat",
+      "length": 734,
+      "scored": 717,
+      "nll_sum": 281.7284755706787
+     },
+     {
+      "id": "p0403",
+      "domain": "chat",
+      "length": 1773,
+      "scored": 1733,
+      "nll_sum": 819.9865427017212
+     },
+     {
+      "id": "p0407",
+      "domain": "multilingual_ja",
+      "length": 606,
+      "scored": 581,
+      "nll_sum": 156.1606960296631
+     },
+     {
+      "id": "p0409",
+      "domain": "multilingual_ko",
+      "length": 324,
+      "scored": 280,
+      "nll_sum": 105.72016143798828
+     },
+     {
+      "id": "p0410",
+      "domain": "multilingual_es",
+      "length": 927,
+      "scored": 880,
+      "nll_sum": 229.90341567993164
+     },
+     {
+      "id": "p0415",
+      "domain": "multilingual_de",
+      "length": 670,
+      "scored": 622,
+      "nll_sum": 184.88947868347168
+     },
+     {
+      "id": "p0418",
+      "domain": "multilingual_ar",
+      "length": 655,
+      "scored": 616,
+      "nll_sum": 167.40000343322754
+     },
+     {
+      "id": "p0425",
+      "domain": "multilingual_id",
+      "length": 570,
+      "scored": 555,
+      "nll_sum": 73.6890811920166
+     },
+     {
+      "id": "p0426",
+      "domain": "multilingual_tr",
+      "length": 706,
+      "scored": 684,
+      "nll_sum": 109.81663513183594
+     },
+     {
+      "id": "p0427",
+      "domain": "multilingual_ne",
+      "length": 897,
+      "scored": 832,
+      "nll_sum": 253.7941780090332
+     },
+     {
+      "id": "p0428",
+      "domain": "multilingual_zh",
+      "length": 1965,
+      "scored": 1923,
+      "nll_sum": 588.6549282073975
+     },
+     {
+      "id": "p0429",
+      "domain": "multilingual_ja",
+      "length": 859,
+      "scored": 831,
+      "nll_sum": 319.2560558319092
+     },
+     {
+      "id": "p0431",
+      "domain": "long_context",
+      "length": 1319,
+      "scored": 101,
+      "nll_sum": 27.1241397857666
+     },
+     {
+      "id": "p0434",
+      "domain": "long_context",
+      "length": 1422,
+      "scored": 383,
+      "nll_sum": 192.77379989624023
+     },
+     {
+      "id": "p0435",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 1124,
+      "nll_sum": 366.13151931762695
+     },
+     {
+      "id": "p0436",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 843,
+      "nll_sum": 438.77682304382324
+     },
+     {
+      "id": "p0437",
+      "domain": "long_context",
+      "length": 1997,
+      "scored": 553,
+      "nll_sum": 326.646053314209
+     },
+     {
+      "id": "p0439",
+      "domain": "long_context",
+      "length": 1981,
+      "scored": 61,
+      "nll_sum": 27.266504287719727
+     },
+     {
+      "id": "p0440",
+      "domain": "long_context",
+      "length": 2043,
+      "scored": 1166,
+      "nll_sum": 573.8972911834717
+     },
+     {
+      "id": "p0445",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 842,
+      "nll_sum": 343.6737880706787
+     },
+     {
+      "id": "p0446",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 586,
+      "nll_sum": 336.5516471862793
+     },
+     {
+      "id": "p0449",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 354,
+      "nll_sum": 212.4479217529297
+     },
+     {
+      "id": "p0450",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 983,
+      "nll_sum": 611.3553466796875
+     },
+     {
+      "id": "p0455",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 858,
+      "nll_sum": 358.1986255645752
+     },
+     {
+      "id": "p0459",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 774,
+      "nll_sum": 73.15946388244629
+     },
+     {
+      "id": "p0460",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 126,
+      "nll_sum": 88.54844856262207
+     },
+     {
+      "id": "p0461",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 1017,
+      "nll_sum": 486.4519109725952
+     },
+     {
+      "id": "p0463",
+      "domain": "long_context",
+      "length": 1801,
+      "scored": 340,
+      "nll_sum": 58.90681266784668
+     },
+     {
+      "id": "p0468",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 604,
+      "nll_sum": 247.02391242980957
+     },
+     {
+      "id": "p0470",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 768,
+      "nll_sum": 536.8762531280518
+     },
+     {
+      "id": "p0480",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 286,
+      "nll_sum": 159.1789779663086
+     },
+     {
+      "id": "p0484",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 811,
+      "nll_sum": 367.7665023803711
+     },
+     {
+      "id": "p0485",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 691,
+      "nll_sum": 272.6058883666992
+     },
+     {
+      "id": "p0486",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 935,
+      "nll_sum": 42.13055610656738
+     },
+     {
+      "id": "p0489",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 316,
+      "nll_sum": 168.78463554382324
+     },
+     {
+      "id": "p0496",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 541,
+      "nll_sum": 304.8053169250488
+     },
+     {
+      "id": "p0498",
+      "domain": "long_context",
+      "length": 2048,
+      "scored": 234,
+      "nll_sum": 42.80813026428223
+     },
+     {
+      "id": "p0499",
+      "domain": "long_context",
+      "length": 1866,
+      "scored": 924,
+      "nll_sum": 60.81197166442871
+     }
+    ],
+    "prefix": {
+     "8": {
+      "positions": 15943,
+      "nll_mean": 0.5427164822968262,
+      "ppl": 1.720674701628383,
+      "ppl_stderr": 0.014954487755230464
+     }
+    }
+   }
+  },
+  "nll_mean": 0.46127007117913793,
+  "ppl": 1.586087149869172,
+  "ppl_stderr": 0.0034913031152353233,
+  "by_domain": {
+   "agentic": {
+    "nll": 0.4878671961551122,
+    "positions": 16163
+   },
+   "chat": {
+    "nll": 0.5241033531840665,
+    "positions": 13381
+   },
+   "code": {
+    "nll": 0.46666807460340837,
+    "positions": 160636
+   },
+   "knowledge": {
+    "nll": 0.44644339318049164,
+    "positions": 11695
+   },
+   "long": {
+    "nll": 0.41456767406102635,
+    "positions": 16221
+   },
+   "math": {
+    "nll": 0.4712500015797514,
+    "positions": 9007
+   },
+   "multilingual": {
+    "nll": 0.28053365372071687,
+    "positions": 7804
+   },
+   "writing": {
+    "nll": 0.5058819127550312,
+    "positions": 2550
+   }
+  }
+ }
+}

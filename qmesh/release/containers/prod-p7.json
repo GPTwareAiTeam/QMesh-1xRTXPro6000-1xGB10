@@ -1,0 +1,30 @@
+{
+  "name": "seam-p7-prod",
+  "image": "vllm-moet:dsv41-213d5fa",
+  "workdir": "/vllm-workspace",
+  "entrypoint": "sleep",
+  "cmd": ["infinity"],
+  "mounts": [
+    ["__PAIR_ROOT__", "/pair"],
+    ["/models/dsv41", "/models/dsv41"],
+    ["/usr/local/cuda", "/opt/cuda"],
+    ["__PAIR_ART_MOUNT__", "/artifacts"]
+  ],
+  "env": {
+    "CUDA_HOME": "/opt/cuda",
+    "TORCH_CUDA_ARCH_LIST": "12.0",
+    "PYTHONPATH": "/src/exllamav3",
+    "TORCH_EXTENSIONS_DIR": "/pair/scratch-ext",
+    "LD_LIBRARY_PATH": "/opt/cuda/lib64:/usr/lib/x86_64-linux-gnu",
+    "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True",
+    "CUDA_VISIBLE_DEVICES": "0",
+    "MAX_JOBS": "8",
+    "NINJAFLAGS": "-j8",
+    "MAKEFLAGS": "-j8",
+    "NVARCH": "x86_64"
+  },
+  "args": ["--gpus", "device=0", "--network", "host", "--ipc", "host", "--shm-size", "68719476736",
+           "--ulimit", "memlock=-1", "--ulimit", "stack=67108864",
+           "--security-opt", "label=disable",
+           "--device", "/dev/infiniband:/dev/infiniband:rwm", "--restart", "no"]
+}
