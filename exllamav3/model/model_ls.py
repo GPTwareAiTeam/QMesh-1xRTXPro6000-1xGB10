@@ -1,0 +1,518 @@
+from __future__ import annotations
+from typing import Callable
+import copy
+import os
+import queue
+import threading
+import torch
+
+from ..modules.attn import prepare_for_attn
+from ..cache.recurrent_util import prepare_for_recurrence, advance_recurrent_states
+from ..constants import PAGE_SIZE
+from ..util.memory import (
+    set_memory_fraction_reserve,
+    set_memory_fraction_use,
+    unset_memory_fraction,
+    free_mem,
+    device_mem_info,
+    gc_paused,
+)
+from ..util.progress import ProgressBar
+
+# Piecewise decode graphs (EXL3_WHOLE_GRAPH) run each block with its residual final at exit (see transformer._PIECEWISE)
+_PIECEWISE = os.environ.get("EXL3_WHOLE_GRAPH", "0") != "0"
+from ..util.tensor import g_tensor_cache
+from .config import Config
+from abc import ABC, abstractmethod
+
+# Params a prefill call may carry and still be cut into pieces (see prefill_ls_pipelined)
+_pipeline_keys = {
+    "attn_mode", "block_table", "cache", "cache_seqlens", "recurrent_states", "indexed_embeddings", "inv_freq",
+    "mm_span_prefix", "export_state_layers",
+}
+
+
+class Model_LSMixin(ABC):
+
+    def __init__(self):
+        pass
+
+
+    @abstractmethod
+    def get_layer_instances(self, layer_idx) -> tuple:
+        ...
+
+
+    def _load_single(
+        self,
+        progressbar: bool,
+        device: torch.device,
+        config: Config,
+        modules: list,
+        verbose: bool
+    ):
+        pin = config.infer_params.vision_pinned and getattr(self, "component", "text") == "vision"
+        with ProgressBar(f"Loading" if progressbar else None, len(modules)) as progress:
+            for idx, module in enumerate(modules):
+                defer = module.can_defer_load()
+                with gc_paused():
+                    if defer:
+                        # Pinned modules leave the arena alone: their slab slices would keep whole
+                        # blocks resident after the weights move to host memory
+                        config.stc.begin_deferred_load(arena = not pin)
+                    module.load(torch.device("cpu") if module.caps.get("prefer_cpu") else device)
+                    if defer:
+                        config.stc.end_deferred_load()
+                if pin:
+                    # After the deferred fills have landed: linear weights move to pinned host
+                    # memory (zero-copy aliases), everything else stays put
+                    module.pin_linears()
+                for h in getattr(config, "moe_cpu_hosts", {}).values():
+                    h.commit_module(module.key)
+                progress.update(idx + 1)
+
+
+    def default_load_shape_dtype(self, chunk_size):
+        return (1, chunk_size), torch.long
+
+
+    def default_load_params(self, chunk_size):
+        return {"input_ids": torch.zeros((1, chunk_size), dtype = torch.long)}
+
+
+    def _load_autosplit(
+        self,
+        progressbar: bool,
+        reserve_per_device: list[int] | None,
+        use_per_device: list[int] | None,
+        active_devices: list[int],
+        max_chunk_size: int,
+        max_output_size: int,
+        max_output_factor: int,
+        callback_sync: Callable[[int, int], None],
+        generator: bool,
+        config: Config,
+        modules: list,
+        verbose: bool,
+        max_batch_size: int,
+        cache_weakrefs: dict,
+        autosplit_no_forward: bool,
+        export_state_layers: set[int] | None = None,
+    ):
+        current_device_i = 0
+        backup_shape, backup_dtype = self.default_load_shape_dtype(max_chunk_size)
+        dummy_state = None
+        prev_load_device = None
+        touched_devices = []
+        params = self.default_load_params(max_chunk_size)
+        # The measuring forwards below exist to observe VRAM allocation; modules with CPU-side
+        # compute (CPU-offloaded experts) can skip the host work when they see this flag
+        params["autosplit_measure"] = True
+        # Layers a draft model taps: their exported states accumulate in params over the measuring
+        # forwards, so each stays allocated on its device as it does through a real forward
+        if export_state_layers:
+            params["export_state_layers"] = set(export_state_layers)
+
+        # Simulate cached/recurrent path while loading with cache
+        cl = [m for m in self if m.caps.get("kv_cache")]
+        if cl:
+            c0 = cl[0].cache_layers[0] if len(cl[0].cache_layers) else None
+            if c0:
+                cache = cache_weakrefs[c0.cache_id]()
+                params.update({
+                    "attn_mode": "flash_attn",
+                    "cache": cache,
+                    "past_len": 0,
+                    "batch_shape": (1, max_chunk_size),
+                })
+                prepare_for_attn(torch.zeros((1, max_chunk_size), dtype = torch.long), params)
+                rl = [m for m in self if m.caps.get("recurrent_cache")]
+                if rl:
+                    prepare_for_recurrence(None, params, self)
+
+        recurrent_states = params.get("recurrent_states")
+
+        # Per device: the budget the memory fraction enforces, and the largest transient any
+        # measuring forward has needed there. A module's forward only proves that ITS transient
+        # still fits; every module already on the device needs its own at runtime, so a device
+        # is closed when its remaining headroom no longer covers the largest one seen
+        device_budget = {}
+        max_transient = {}
+        # Physical margin on top of the largest measured transient: the measure is per module,
+        # while a real forward also carries what the caller keeps live around it (recurrent
+        # test states, gathered embeddings, allocator slack), so a device packed to exactly one
+        # transient of headroom fails on the first real chunk
+        autosplit_margin = int(os.environ.get("EXL3_AUTOSPLIT_MARGIN_MB", 256)) << 20
+        autosplit_prepare = os.environ.get("EXL3_AUTOSPLIT_PREPARE", "1") != "0"
+
+        with ProgressBar(f"Loading (LS)" if progressbar else None, len(modules)) as progress:
+
+            for idx, module in enumerate(modules):
+
+                if callback_sync: callback_sync(idx, len(modules))
+                if generator: yield idx, len(modules)
+
+                # Narrow state to max_output_size for logit output layer. When a live dummy state
+                # exists, refresh the backup from it: backup_shape still holds the state that
+                # ENTERED the previous module, which can have a different rank (e.g. a
+                # hyper-connection stream stack ahead of a final mixer)
+                is_logits_layer = module.caps.get("logits_output")
+                if is_logits_layer and not autosplit_no_forward:
+                    if dummy_state is not None:
+                        dummy_state = dummy_state[:, :max_output_size]
+                        backup_shape = dummy_state.shape
+                        backup_dtype = dummy_state.dtype
+                    else:
+                        b, c, *rest = backup_shape
+                        backup_shape = (b, min(max_output_size, c), *rest)
+
+                while True:
+                    try:
+                        # Select device
+                        load_device = torch.device("cpu") if module.caps.get("prefer_cpu") else \
+                            torch.device(active_devices[current_device_i])
+                        x_device = torch.device("cpu") if module.caps.get("prefer_cpu") or module.caps.get("x_cpu") else \
+                            torch.device(active_devices[current_device_i])
+
+                        # Set VRAM limit if new device
+                        if load_device != torch.device("cpu") and load_device != prev_load_device:
+                            prev_load_device = load_device
+                            i = active_devices[current_device_i]
+                            touched_devices.append(i)
+                            i = active_devices[current_device_i]
+                            if reserve_per_device is not None:
+                                device_budget[i] = set_memory_fraction_reserve(reserve_per_device[i], i)
+                            elif use_per_device is not None:
+                                device_budget[i] = set_memory_fraction_use(use_per_device[i], i)
+                            else:
+                                raise RuntimeError("Logic error")
+
+                        # (Re)create or backup hidden state (metadata)
+                        if dummy_state is None:
+                            dummy_state = torch.zeros(backup_shape, dtype = backup_dtype, device = x_device)
+                        else:
+                            backup_shape = dummy_state.shape
+                            backup_dtype = dummy_state.dtype
+
+                        num_exports = len(params.get("export_states") or [])
+
+                        # Load module
+                        defer = module.can_defer_load()
+                        pin = config.infer_params.vision_pinned and \
+                            getattr(self, "component", "text") == "vision"
+                        with gc_paused():
+                            if defer:
+                                # Pinned modules leave the arena alone (see _load_single)
+                                config.stc.begin_deferred_load(arena = not pin)
+                            module.load(load_device, max_chunk_size = max_chunk_size)
+                            if defer:
+                                config.stc.end_deferred_load()
+                        if pin:
+                            # Before the measuring forward, so the VRAM accounting reflects the
+                            # pinned (host-resident) weights
+                            module.pin_linears()
+
+                        # Forward dummy state through module. The forward runs the real cached
+                        # attention path, so any dequant temporaries a quantized cache layer
+                        # still needs are allocated (and accounted) here
+                        if self.caps.get("autosplit_load_fwd", True) and not autosplit_no_forward:
+                            measure = load_device.type == "cuda"
+                            # Resident state the module would otherwise create inside the
+                            # measuring window (and be budgeted for twice) is allocated first
+                            if autosplit_prepare:
+                                for sm in module:
+                                    sm.autosplit_prepare(params)
+                            if measure:
+                                torch.cuda.reset_peak_memory_stats(load_device)
+                                alloc_before = torch.cuda.memory_allocated(load_device)
+                                in_bytes = dummy_state.untyped_storage().nbytes() if dummy_state.device == load_device else 0
+                                statics_before = set(g_tensor_cache.cache)
+                            dummy_state = module.prepare_for_device(dummy_state, params)
+                            dummy_state = module.forward(dummy_state, params)
+                            for sm in module:
+                                sm.autosplit_extra_measure(params)
+                            if measure:
+                                i = load_device.index
+                                transient = max(0, torch.cuda.max_memory_allocated(load_device) - alloc_before)
+                                # Net growth beyond the output replacing the input: state a hook
+                                # could have allocated in autosplit_prepare instead. Small
+                                # remainders are expected (first-use library workspaces, bounded
+                                # selection slabs, selections threaded to the shared layers)
+                                out_bytes = dummy_state.untyped_storage().nbytes() if dummy_state.device == load_device else 0
+                                resident = torch.cuda.memory_allocated(load_device) - alloc_before - out_bytes + in_bytes
+                                if verbose and resident > (16 << 20):
+                                    new_statics = [(k.split("/")[-1], v.numel() * v.element_size())
+                                                   for k, (_, v) in g_tensor_cache.cache.items() if k not in statics_before]
+                                    new_statics.sort(key = lambda t: -t[1])
+                                    tags = ", ".join(f"{t} {n >> 20} MiB" for t, n in new_statics[:6] if n >= (1 << 20))
+                                    print(f" !! autosplit: {module.key} left {resident >> 20} MiB resident during its "
+                                          f"measuring forward (budgeted as transient too)" + (f": {tags}" if tags else ""))
+
+                                max_transient[i] = max(max_transient.get(i, 0), transient)
+                                # Models with mixed layer type and dramatically different transient memory requirements
+                                # per layer break the assumption that if layer n fits and subsequently layer n+1 also
+                                # fits, then layer n will continue to work even with the weights of layer n+1 loaded
+                                if torch.cuda.memory_allocated(load_device) + max_transient[i] > device_budget[i]:
+                                    raise torch.cuda.OutOfMemoryError(
+                                        f"autosplit: cuda:{i} has no headroom left for the largest "
+                                        f"transient measured on it ({max_transient[i] >> 20} MiB)"
+                                    )
+                                # The same check against the device itself: a split budget at or
+                                # above the card's size plans against VRAM the CUDA context, the
+                                # loaded kernels and other processes hold (several hundred MiB),
+                                # and a load that passes the budget check then fails on the first
+                                # real forward. What the largest transient can still draw on is the
+                                # free device memory plus the allocator's reserved-but-unallocated
+                                # pool
+                                free_now, _ = device_mem_info(load_device)
+                                reusable = free_now + torch.cuda.memory_reserved(load_device) - \
+                                    torch.cuda.memory_allocated(load_device)
+                                if reusable < max_transient[i] + autosplit_margin:
+                                    raise torch.cuda.OutOfMemoryError(
+                                        f"autosplit: cuda:{i} has {reusable >> 20} MiB of physical headroom "
+                                        f"left, below the largest transient measured on it "
+                                        f"({max_transient[i] >> 20} MiB) plus the {autosplit_margin >> 20} MiB "
+                                        f"margin (EXL3_AUTOSPLIT_MARGIN_MB)"
+                                    )
+
+                        # Account for max_output_factor after last layer
+                        extra_dummy_out_states = None
+                        if is_logits_layer:
+                            extra_dummy_out_states = [
+                                torch.empty_like(dummy_state)
+                                for _ in range(max_output_factor - 1)
+                            ]
+
+                        # Dereference extra dummy tensors
+                        extra_dummy_out_states = None
+
+                        # We're good. For CPU-offloaded MoE layers, wait for the worker process
+                        # to finish loading this module's expert weights before advancing, so
+                        # load progress stays honest and rollbacks can't outrun the child
+                        for h in getattr(config, "moe_cpu_hosts", {}).values():
+                            h.commit_module(module.key)
+                        fail = False
+                        progress.update(idx + 1)
+
+                    # We're not good
+                    except Exception as e:
+                        config.stc.abort_deferred_load()
+                        if e.__class__.__name__ == "OutOfMemoryError" or \
+                            "CUDA out of memory" in str(e) or \
+                            "HIP out of memory" in str(e):
+                            # Exception object will hold references to tensors so we can't free them here
+                            fail = True
+                            if verbose:
+                                print(f" -- autosplit: {module.key} does not fit on {load_device}: {str(e).splitlines()[0][:200]}")
+                        else:
+                            raise
+
+                    # Module failed to load with an OoM error, so advance to the next device if possible
+                    if fail:
+                        module.unload()
+                        dummy_state = None
+                        # States the failed attempt exported belong to the module now retried elsewhere
+                        if params.get("export_states"):
+                            del params["export_states"][num_exports:]
+                        if "recurrent_states" in params:
+                            for rs in params["recurrent_states"]:
+                                rs.reset()
+
+                        free_mem()
+                        current_device_i += 1
+                        if current_device_i >= len(active_devices):
+                            raise RuntimeError("Insufficient VRAM in split for model and cache")
+                        continue
+
+                    # On to next module
+                    break
+
+            if callback_sync: callback_sync(len(modules), len(modules))
+            if generator: yield len(modules), len(modules)
+
+            dummy_state = None
+            unset_memory_fraction(touched_devices)
+            if verbose:
+                for i in touched_devices:
+                    print(f" -- autosplit: cuda:{i} largest measured transient {max_transient.get(i, 0) >> 20} MiB, "
+                          f"{torch.cuda.mem_get_info(i)[0] >> 20} MiB free after load")
+
+        if recurrent_states is not None:
+            for rs in recurrent_states:
+                rs.free()
+
+        config.stc.close()
+        self.active_devices = active_devices
+        self.max_chunk_size = max_chunk_size
+
+        # Python will not run anything in an async function without at least one yield statement
+        if 'yield' in locals():
+            yield
+
+
+    def prefill_ls(
+        self,
+        x: torch.Tensor,
+        params: dict,
+    ):
+        for h in getattr(self.config, "moe_cpu_hosts", {}).values():
+            h.begin_pass()
+        for module, instance, idx in self.fwd_modules:
+            params["layer_instance"] = instance
+            pf = (idx, instance) == self.last_kv_module_idx_instance
+            params["prefill"] = pf
+            x = module.prepare_for_device(x, params)
+            x = module.forward(x, params)
+            if pf:
+                break
+        del params["prefill"]
+        return None
+
+
+    def prefill_ls_pipelined(self, input_ids: torch.Tensor, params: dict) -> bool:
+        """
+        Prefill a call longer than the max_chunk_size the split was loaded for in pieces of that size, each device
+        of the split working on a different piece (one piece after another where the split does not allow that).
+        A device takes its next piece once the following device has run its first module on the current one.
+        Returns False, having done nothing, if the call is not eligible.
+        """
+        n = self.max_chunk_size // PAGE_SIZE * PAGE_SIZE
+        rows = input_ids.shape[-1]
+        if not self.caps.get("prefill_pipeline") or not 0 < n < rows or rows % PAGE_SIZE or input_ids.shape[0] != 1 \
+                or params.keys() - _pipeline_keys or params.get("attn_mode") != "flash_attn" \
+                or params.get("cache_seqlens") is None or params.get("indexed_embeddings") \
+                or params.get("inv_freq") is not None or params.get("mm_span_prefix"):
+            return False
+        rs = params.get("recurrent_states")
+        cuts, devs = [], []
+        for i, (module, instance, idx) in enumerate(self.fwd_modules):
+            if module.device.type == "cuda" and module.device not in devs[-1:]:
+                cuts.append(i)
+                devs.append(module.device)
+            if (idx, instance) == self.last_kv_module_idx_instance:
+                break
+        if len(devs) < 2:
+            return False
+        # The CPU MoE worker takes one caller at a time, so its layers must all be on one device; with recurrent
+        # states the first device needs a layer that sets their ring shift before they are advanced
+        if len(set(devs)) < len(devs) \
+                or len({m.device for m in self if getattr(m, "cpu_offload", False)
+                        or getattr(m, "cpu_split_first", None) is not None}) > 1 \
+                or (rs and devs[0] not in {m.device for m in self.get_recurrent_layers() if (m.layer_idx or 0) >= 0}):
+            taps = []
+            for c, ids in enumerate(input_ids.split(n, dim = -1)):
+                p = dict(params, cache_seqlens = params["cache_seqlens"] + c * n)
+                self.prefill(ids, p)
+                taps.append([t.cpu() for t in p.get("export_states") or ()])
+            if taps[0]:
+                params["export_states"] = [torch.cat(t, dim = -2) for t in zip(*taps)]
+            return True
+        cuts = [0] + cuts[1:] + [i + 1]
+        qs = [queue.Queue() for _ in cuts[2:]]
+        err, taps = [], []
+
+        def step(x, p, i):
+            module, instance, idx = self.fwd_modules[i]
+            p["layer_instance"] = instance
+            p["prefill"] = (idx, instance) == self.last_kv_module_idx_instance
+            x = module.prepare_for_device(x, p)
+            return module.forward(x, p)
+
+        def emit(s, x, p):
+            if s < len(qs):
+                qs[s].put((x, p))
+                qs[s].join()
+            else:
+                # Exported states leave the device with their piece
+                taps.append([t.cpu() for t in p.get("export_states") or ()])
+
+        def stage(s):
+            with torch.inference_mode():
+                for x, p in iter(qs[s - 1].get, None):
+                    try:
+                        try:
+                            if not err:
+                                x = step(x, p, cuts[s])
+                        finally:
+                            qs[s - 1].task_done()
+                        for i in range(cuts[s] + 1, cuts[s + 1]):
+                            if err:
+                                break
+                            x = step(x, p, i)
+                        if not err:
+                            emit(s, x, p)
+                    except BaseException as e:
+                        err.append(e)
+            if s < len(qs):
+                qs[s].put(None)
+
+        threads = [threading.Thread(target = stage, args = (s,), daemon = True) for s in range(1, len(cuts) - 1)]
+        try:
+            for t in threads:
+                t.start()
+            for c, ids in enumerate(input_ids.split(n, dim = -1)):
+                if err:
+                    break
+                for h in getattr(self.config, "moe_cpu_hosts", {}).values():
+                    h.begin_pass()
+                p = dict(params, cache_seqlens = params["cache_seqlens"] + c * n)
+                x = self.prepare_inputs(ids, p)
+                for i in range(cuts[1]):
+                    x = step(x, p, i)
+                # Later devices run this piece with the states as its first layers left them (they set the ring
+                # shift); the caller's are advanced for the next piece
+                p["recurrent_states"] = rs and [copy.copy(r) for r in rs]
+                advance_recurrent_states(ids, params, self)
+                emit(0, x, p)
+                del x
+        except BaseException as e:
+            err.insert(0, e)
+        finally:
+            # No stage may still be running when this returns, a second interrupt included
+            while True:
+                try:
+                    qs[0].put(None)
+                    for t in threads:
+                        if t.is_alive():
+                            t.join()
+                    break
+                except BaseException as e:
+                    err.insert(0, e)
+        if err:
+            try:
+                raise err[0]
+            finally:
+                err.clear()
+        if taps[0]:
+            params["export_states"] = [torch.cat(t, dim = -2) for t in zip(*taps)]
+        return True
+
+
+    def forward_ls(
+        self,
+        x: torch.Tensor,
+        params: dict,
+    ):
+        for h in getattr(self.config, "moe_cpu_hosts", {}).values():
+            h.begin_pass()
+        from ..modules.transformer import TransformerBlock
+        mods = self.fwd_modules
+        for i, (module, instance, idx) in enumerate(mods):
+            params["layer_instance"] = instance
+            if module.caps.get("logits_output") and (num := params.get("last_tokens_only")):
+                x = x[..., -num:, :].contiguous()
+            x = module.prepare_for_device(x, params)
+            # A block may leave its final residual add (or, piecewise, its whole MLP half) to the next block
+            nxt = mods[i + 1][0] if i + 1 < len(mods) else None
+            params["pw_next"] = nxt
+            params["resid_defer"] = not _PIECEWISE and (
+                type(module) is TransformerBlock and type(nxt) is TransformerBlock and nxt.device == module.device
+            )
+            x = module.forward(x, params)
+        params.pop("pw_next", None)
+        params.pop("resid_defer", None)
+        pending = params.pop("resid_pending", None)
+        if pending is not None:
+            x += pending
+        return x
+

@@ -1,0 +1,3 @@
+{"target": 24000, "prompt_tokens": 24011, "tokens": 16, "ttft_s": 16.532974923960865, "prompt_tokens_per_ttft_s": 1452.3097089563357}
+{"target": 131000, "prompt_tokens": 130995, "tokens": 16, "ttft_s": 92.67049910593778, "prompt_tokens_per_ttft_s": 1413.5566470862636}
+{"target": 1000000, "prompt_tokens": 999983, "tokens": 16, "ttft_s": 849.9021758148447, "prompt_tokens_per_ttft_s": 1176.5859983135886}
